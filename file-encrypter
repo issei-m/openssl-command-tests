@@ -3,7 +3,7 @@
 usage() {
     echo "(!) THIS WAS MADE FOR TEST PURPOSE SO DON'T USE THIS SCRIPT FOR ENCRYPTION OF SENSITIVE FILE
 
-file-encrypter - Encrypts the file with AES-256 (for the file) and RSA (for the key).
+file-encrypter - Encrypts/Decrypts the file with AES-256 (for the file) and RSA (for the key).
 
 COMMANDS:
     ${0} enc <rsa_public_key> <input_file>
