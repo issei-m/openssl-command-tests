@@ -6,10 +6,10 @@ usage() {
 file-encrypter - Encrypts/Decrypts the file with AES-256 (for the file) and RSA (for the key).
 
 COMMANDS:
-    ${0} enc <rsa_public_key> <input_file>
+    file-encrypter enc <rsa_public_key> <input_file>
         Encrypts the input file. The output file name should be '<input_file>.enc'.
 
-    ${0} dec <rsa_private_key> <input_file>
+    file-encrypter dec <rsa_private_key> <input_file>
         Decrypts the input file. The output file name should be dropped '.enc' extension from '<input_file>' (i.e. The original file name before your encryption)."
     exit 1
 }
