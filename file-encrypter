@@ -23,12 +23,12 @@ if [[ -z ${COMMAND} || -z ${INPUT_FILE} ]] || [[ ${COMMAND} != 'enc' && ${COMMAN
 fi
 
 if [[ ! -f ${RSA_KEY} ]]; then
-    echo 'No such key file'
+    echo "No such input file: ${RSA_KEY}"
     exit 2
 fi
 
 if [[ ! -f ${INPUT_FILE} ]]; then
-    echo 'No such input file'
+    echo "No such input file: ${INPUT_FILE}"
     exit 2
 fi
 
@@ -48,6 +48,12 @@ if [[ ${COMMAND} == 'enc' ]]; then
     echo "Encrypted into: ${OUTPUT_FILE}"
 else
     OUTPUT_FILE="${INPUT_FILE%.*}"
+
+    if [[ -f ${OUTPUT_FILE} ]]; then
+        echo "The output file already exists: ${OUTPUT_FILE}"
+        exit 3
+    fi
+
     INPUT_FILE_SIZE=$(wc -c ${INPUT_FILE} | awk '{print $1}')
     PAYLOAD_SIZE=$(expr ${INPUT_FILE_SIZE} - 256)
 
