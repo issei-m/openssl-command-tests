@@ -1,0 +1,65 @@
+#!/usr/bin/env bash
+
+usage() {
+    echo "(!) THIS WAS MADE FOR TEST PURPOSE SO DON'T USE THIS SCRIPT FOR ENCRYPTION OF SENSITIVE FILE
+
+file-encrypter - Encrypts the file with AES-256 (for the file) and RSA (for the key).
+
+COMMANDS:
+    ${0} enc <rsa_public_key> <input_file>
+        Encrypts the input file. The output file name should be '<input_file>.enc'.
+
+    ${0} dec <rsa_private_key> <input_file>
+        Decrypts the input file. The output file name should be dropped '.enc' extension from '<input_file>' (i.e. The original file name before your encryption)."
+    exit 1
+}
+
+COMMAND=${1}
+RSA_KEY=${2}
+INPUT_FILE=${3}
+
+if [[ -z ${COMMAND} || -z ${INPUT_FILE} ]] || [[ ${COMMAND} != 'enc' && ${COMMAND} != 'dec' ]]; then
+    usage
+fi
+
+if [[ ! -f ${RSA_KEY} ]]; then
+    echo 'No such key file'
+    exit 2
+fi
+
+if [[ ! -f ${INPUT_FILE} ]]; then
+    echo 'No such input file'
+    exit 2
+fi
+
+WORKING_DIR=$(mktemp -d)
+TEMP_ENCRYPTED_FILE="${WORKING_DIR}/temp"
+RANDOM_KEY="${WORKING_DIR}/key.bin"
+RANDOM_KEY_ENCRYPTED="${WORKING_DIR}/key.enc"
+
+if [[ ${COMMAND} == 'enc' ]]; then
+    OUTPUT_FILE="${3}.enc"
+
+    openssl rand 245 -out ${RANDOM_KEY};
+    openssl enc -aes-256-cbc -in ${INPUT_FILE} -out ${TEMP_ENCRYPTED_FILE} -pass file:${RANDOM_KEY}
+    openssl rsautl -encrypt -inkey public.pem -pubin -in ${RANDOM_KEY} -out ${RANDOM_KEY_ENCRYPTED}
+    cat ${RANDOM_KEY_ENCRYPTED} ${TEMP_ENCRYPTED_FILE} > ${OUTPUT_FILE}
+
+    echo "Encrypted into: ${OUTPUT_FILE}"
+else
+    OUTPUT_FILE="${INPUT_FILE%.*}"
+    INPUT_FILE_SIZE=$(wc -c ${INPUT_FILE} | awk '{print $1}')
+    PAYLOAD_SIZE=$(expr ${INPUT_FILE_SIZE} - 256)
+
+    head -c 256 ${INPUT_FILE} > ${RANDOM_KEY_ENCRYPTED}
+    tail -c ${PAYLOAD_SIZE} ${INPUT_FILE} > ${TEMP_ENCRYPTED_FILE}
+    openssl rsautl -decrypt -inkey ${RSA_KEY} -in ${RANDOM_KEY_ENCRYPTED} -out ${RANDOM_KEY}
+    openssl enc -d -aes-256-cbc -in ${TEMP_ENCRYPTED_FILE} -out ${OUTPUT_FILE} -pass file:${RANDOM_KEY}
+
+    echo "Decrypted into: ${OUTPUT_FILE}"
+fi
+
+rm -fr ${WORKING_DIR}
+
+exit 0
+`
