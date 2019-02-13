@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+set -eu
+
 usage() {
     echo "(!) THIS WAS MADE FOR TEST PURPOSE SO DON'T USE THIS SCRIPT FOR ENCRYPTION OF SENSITIVE FILE
 
@@ -42,7 +44,7 @@ if [[ ${COMMAND} == 'enc' ]]; then
 
     openssl rand 245 -out ${RANDOM_KEY};
     openssl enc -aes-256-cbc -salt -in ${INPUT_FILE} -out ${TEMP_ENCRYPTED_FILE} -pass file:${RANDOM_KEY}
-    openssl rsautl -encrypt -inkey public.pem -pubin -in ${RANDOM_KEY} -out ${RANDOM_KEY_ENCRYPTED}
+    openssl rsautl -encrypt -inkey ${RSA_KEY} -pubin -in ${RANDOM_KEY} -out ${RANDOM_KEY_ENCRYPTED}
     cat ${RANDOM_KEY_ENCRYPTED} ${TEMP_ENCRYPTED_FILE} > ${OUTPUT_FILE}
 
     echo "Encrypted into: ${OUTPUT_FILE}"
