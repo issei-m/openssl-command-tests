@@ -41,7 +41,7 @@ if [[ ${COMMAND} == 'enc' ]]; then
     OUTPUT_FILE="${3}.enc"
 
     openssl rand 245 -out ${RANDOM_KEY};
-    openssl enc -aes-256-cbc -in ${INPUT_FILE} -out ${TEMP_ENCRYPTED_FILE} -pass file:${RANDOM_KEY}
+    openssl enc -aes-256-cbc -salt -in ${INPUT_FILE} -out ${TEMP_ENCRYPTED_FILE} -pass file:${RANDOM_KEY}
     openssl rsautl -encrypt -inkey public.pem -pubin -in ${RANDOM_KEY} -out ${RANDOM_KEY_ENCRYPTED}
     cat ${RANDOM_KEY_ENCRYPTED} ${TEMP_ENCRYPTED_FILE} > ${OUTPUT_FILE}
 
