@@ -44,7 +44,7 @@ RANDOM_KEY_ENCRYPTED="${WORKING_DIR}/key.enc"
 if [[ ${COMMAND} == 'enc' ]]; then
     OUTPUT_FILE="${3}.enc"
 
-    openssl rand 64 -out ${RANDOM_KEY};
+    openssl rand 32 -out ${RANDOM_KEY};
     openssl rsautl -encrypt -inkey ${RSA_KEY} -pubin -in ${RANDOM_KEY} | base64 > ${OUTPUT_FILE}
     openssl enc -aes-256-cbc -salt -in ${INPUT_FILE} -pass file:${RANDOM_KEY} | base64 >> ${OUTPUT_FILE}
 
