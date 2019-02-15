@@ -10,9 +10,11 @@ file-encrypter - Encrypts/Decrypts the file with AES-256 (for the file) and RSA 
 COMMANDS:
     file-encrypter enc <rsa_public_key> <input_file>
         Encrypts the input file. The output file name should be '<input_file>.enc'.
+        and <rsa_public_key> must be a more 1024 bit of PKCS8 format.
 
     file-encrypter dec <rsa_private_key> <input_file>
         Decrypts the input file. The output file name should be dropped '.enc' extension from '<input_file>' (i.e. The original file name before your encryption)."
+
     exit 1
 }
 
@@ -42,10 +44,9 @@ RANDOM_KEY_ENCRYPTED="${WORKING_DIR}/key.enc"
 if [[ ${COMMAND} == 'enc' ]]; then
     OUTPUT_FILE="${3}.enc"
 
-    openssl rand 245 -out ${RANDOM_KEY};
-    openssl enc -aes-256-cbc -salt -in ${INPUT_FILE} -out ${TEMP_ENCRYPTED_FILE} -pass file:${RANDOM_KEY}
-    openssl rsautl -encrypt -inkey ${RSA_KEY} -pubin -in ${RANDOM_KEY} -out ${RANDOM_KEY_ENCRYPTED}
-    cat ${RANDOM_KEY_ENCRYPTED} ${TEMP_ENCRYPTED_FILE} > ${OUTPUT_FILE}
+    openssl rand 64 -out ${RANDOM_KEY};
+    openssl rsautl -encrypt -inkey ${RSA_KEY} -pubin -in ${RANDOM_KEY} | base64 > ${OUTPUT_FILE}
+    openssl enc -aes-256-cbc -salt -in ${INPUT_FILE} -pass file:${RANDOM_KEY} | base64 >> ${OUTPUT_FILE}
 
     echo "Encrypted into: ${OUTPUT_FILE}"
 else
@@ -56,13 +57,8 @@ else
         exit 3
     fi
 
-    INPUT_FILE_SIZE=$(wc -c ${INPUT_FILE} | awk '{print $1}')
-    PAYLOAD_SIZE=$(expr ${INPUT_FILE_SIZE} - 256)
-
-    head -c 256 ${INPUT_FILE} > ${RANDOM_KEY_ENCRYPTED}
-    tail -c ${PAYLOAD_SIZE} ${INPUT_FILE} > ${TEMP_ENCRYPTED_FILE}
-    openssl rsautl -decrypt -inkey ${RSA_KEY} -in ${RANDOM_KEY_ENCRYPTED} -out ${RANDOM_KEY}
-    openssl enc -d -aes-256-cbc -in ${TEMP_ENCRYPTED_FILE} -out ${OUTPUT_FILE} -pass file:${RANDOM_KEY}
+    head -n 1 ${INPUT_FILE} | base64 -D | openssl rsautl -decrypt -inkey ${RSA_KEY} -out ${RANDOM_KEY}
+    tail -n +2 ${INPUT_FILE} | base64 -D | openssl enc -d -aes-256-cbc -out ${OUTPUT_FILE} -pass file:${RANDOM_KEY}
 
     echo "Decrypted into: ${OUTPUT_FILE}"
 fi
